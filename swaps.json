@@ -1,0 +1,55 @@
+{
+ "broker": "MetaQuotes-Demo",
+ "currency": "USD",
+ "updated": "2026-10-26",
+ "symbols": {
+  "EURUSD": {
+   "triple_day": 3,
+   "long": -0.7,
+   "short": -1.0,
+   "unit": "USD"
+  },
+  "GBPUSD": {
+   "triple_day": 3,
+   "long": -0.2,
+   "short": -2.2,
+   "unit": "USD"
+  },
+  "USDJPY": {
+   "triple_day": 3,
+   "long": -0.06,
+   "short": -0.38,
+   "unit": "USD"
+  },
+  "USDCHF": {
+   "triple_day": 3,
+   "long": 0.12,
+   "short": -1.21,
+   "unit": "USD"
+  },
+  "AUDUSD": {
+   "triple_day": 3,
+   "long": 6.3,
+   "short": -14.8,
+   "unit": "USD"
+  },
+  "USDCAD": {
+   "triple_day": 3,
+   "long": -0.57,
+   "short": -0.29,
+   "unit": "USD"
+  },
+  "NZDUSD": {
+   "triple_day": 3,
+   "long": 2.8,
+   "short": -6.7,
+   "unit": "USD"
+  },
+  "XAUUSD": {
+   "triple_day": 3,
+   "long": -1.26,
+   "short": -0.46,
+   "unit": "USD"
+  }
+ }
+}

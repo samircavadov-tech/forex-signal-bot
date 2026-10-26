@@ -3,6 +3,7 @@ import logging
 import requests
 
 import config
+import swaps
 
 API = "https://api.telegram.org/bot{token}/{method}"
 log = logging.getLogger(__name__)
@@ -53,6 +54,11 @@ def format_signal(sig) -> str:
         f"Güc: {sig.strength}/{len(sig.biases)} timeframe razıdır",
         f"Səbəb: {sig.trigger}",
         "",
+    ]
+    swap = swaps.format_lines(sig.symbol, sig.side)
+    if swap:
+        lines += swap + [""]
+    lines += [
         "<b>Timeframe analizi:</b>",
     ]
     for b in sig.biases:

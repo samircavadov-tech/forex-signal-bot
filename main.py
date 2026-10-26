@@ -17,6 +17,7 @@ import sys
 import time
 
 import config
+import swaps
 import telegram_notify as tg
 from indicators import add_indicators
 from strategy import analyze
@@ -125,6 +126,11 @@ def main():
     source = args.source or ("yahoo" if args.cloud else "mt5")
     data = importlib.import_module("mt5_data" if source == "mt5" else "yahoo_data")
     data.connect()
+    if source == "mt5":
+        try:
+            swaps.update_from_mt5()
+        except Exception:
+            log.exception("Svoplar yenilənmədi")
     try:
         symbols = [s for s in config.SYMBOLS if data.prepare_symbol(s)]
         if args.once:
