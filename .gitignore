@@ -2,3 +2,4 @@ secrets_local.py
 signals.log
 state.json
 __pycache__/
+backtest_trades.csv
