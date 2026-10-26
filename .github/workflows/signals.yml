@@ -6,6 +6,11 @@ on:
     - cron: "7 * * * 1-5"
     - cron: "7 21-23 * * 0"
   workflow_dispatch:   # Actions səhifəsindən əl ilə işə salmaq üçün
+    inputs:
+      telegram_test:
+        description: "Telegram-a test mesajı göndər"
+        type: boolean
+        default: false
 
 concurrency:
   group: signals
@@ -16,9 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -27,18 +32,24 @@ jobs:
       - run: pip install -r requirements-cloud.txt
 
       # Əvvəlki işin yaddaşı (artıq yoxlanılmış şamlar) — eyni siqnal iki dəfə gəlməsin
-      - uses: actions/cache/restore@v4
+      - uses: actions/cache/restore@v5
         with:
           path: state.json
           key: state-${{ github.run_id }}
           restore-keys: state-
+
+      - if: ${{ inputs.telegram_test }}
+        run: python main.py --test
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
       - run: python main.py --cloud
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
-      - uses: actions/cache/save@v4
+      - uses: actions/cache/save@v5
         if: always()
         with:
           path: state.json
