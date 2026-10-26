@@ -9,21 +9,26 @@ log = logging.getLogger(__name__)
 
 
 def send(text: str) -> bool:
-    if not config.TELEGRAM_BOT_TOKEN or not config.TELEGRAM_CHAT_ID:
+    """TELEGRAM_CHAT_ID vergüllə ayrılmış bir neçə ID ola bilər. Hamısına çatarsa True."""
+    chat_ids = [c.strip() for c in str(config.TELEGRAM_CHAT_ID).split(",") if c.strip()]
+    if not config.TELEGRAM_BOT_TOKEN or not chat_ids:
         log.warning("Telegram tənzimlənməyib (config.py) — mesaj göndərilmədi.")
         return False
-    try:
-        r = requests.post(
-            API.format(token=config.TELEGRAM_BOT_TOKEN, method="sendMessage"),
-            json={"chat_id": config.TELEGRAM_CHAT_ID, "text": text, "parse_mode": "HTML"},
-            timeout=15,
-        )
-        if not r.ok:
-            log.error("Telegram xətası: %s", r.text)
-        return r.ok
-    except requests.RequestException as e:
-        log.error("Telegram-a qoşulmaq olmadı: %s", e)
-        return False
+    ok = True
+    for chat_id in chat_ids:
+        try:
+            r = requests.post(
+                API.format(token=config.TELEGRAM_BOT_TOKEN, method="sendMessage"),
+                json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
+                timeout=15,
+            )
+            if not r.ok:
+                log.error("Telegram xətası (%s): %s", chat_id, r.text)
+            ok &= r.ok
+        except requests.RequestException as e:
+            log.error("Telegram-a qoşulmaq olmadı (%s): %s", chat_id, e)
+            ok = False
+    return ok
 
 
 def find_chat_ids():
