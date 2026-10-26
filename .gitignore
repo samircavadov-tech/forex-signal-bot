@@ -3,3 +3,4 @@ signals.log
 state.json
 __pycache__/
 backtest_trades.csv
+optimize_results.csv
