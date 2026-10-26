@@ -2,9 +2,11 @@ name: Forex siqnallari
 
 on:
   schedule:
-    # Hər saat :07-də (UTC). Forex bazarı: bazar günü 21:00 – cümə 21:00 UTC.
-    - cron: "7 * * * 1-5"
-    - cron: "7 21-23 * * 0"
+    # Saatda 2 dəfə (UTC). Saat başı GitHub-da yük çox olur və planlı işlər buraxıla bilər,
+    # ona görə :23 və :43 seçilib; eyni şam iki dəfə yoxlanmır (state.json).
+    # Forex bazarı: bazar günü 21:00 – cümə 21:00 UTC.
+    - cron: "23,43 * * * 1-5"
+    - cron: "23,43 21-23 * * 0"
   workflow_dispatch:   # Actions səhifəsindən əl ilə işə salmaq üçün
     inputs:
       telegram_test:

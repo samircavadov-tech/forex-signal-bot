@@ -113,6 +113,7 @@ def send_daily_summary(state):
     text = news.daily_summary(now)
     if text and tg.send(text):
         state["_summary_day"] = today
+        log.info("Gündəlik xəbər xülasəsi göndərildi")
 
 
 def send_monthly_report(state):
@@ -129,6 +130,7 @@ def send_monthly_report(state):
         return
     if tg.send(text):
         state["_month"] = month
+        log.info("Aylıq hesabat göndərildi (%s)", month)
 
 
 def run_cloud(data, symbols):
