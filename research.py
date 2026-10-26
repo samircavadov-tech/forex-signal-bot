@@ -123,16 +123,26 @@ def load_rates():
 
 
 def attach_rates(data, rates):
+    """rate_diff: baza − kotirovka faizi; rate_mom6/12: son 6/12 ayda faiz dəyişməsinin fərqi
+    (mərkəzi bank meyli). Qızıl üçün: carry yoxdur, meyl = −(USD faiz dəyişməsi)."""
+    def monthly(cur, months):
+        r = rates[cur]
+        return r.reindex(pd.period_range(r.index.min(), months.max(), freq="M")).ffill()
+
     for s, df in data.items():
+        months = df.index.to_period("M")
+        # ay ərzində qüvvədə olan faiz = əvvəlki ayın sonundakı (gələcəyi görməmək üçün)
+        at = lambda series: series.shift(1).reindex(months).to_numpy()
+        usd = monthly("USD", months)
         if s == "XAUUSD":
             df["rate_diff"] = 0.0
+            for k in (6, 12):
+                df[f"rate_mom{k}"] = -at(usd - usd.shift(k))
             continue
-        base, quote = s[:3], s[3:]
-        months = df.index.to_period("M")
-        rb = rates[base].reindex(pd.period_range(rates[base].index.min(), months.max(), freq="M")).ffill()
-        rq = rates[quote].reindex(pd.period_range(rates[quote].index.min(), months.max(), freq="M")).ffill()
-        # ay ərzində qüvvədə olan faiz = əvvəlki ayın sonundakı (gələcəyi görməmək üçün)
-        df["rate_diff"] = (rb.shift(1).reindex(months).to_numpy() - rq.shift(1).reindex(months).to_numpy())
+        rb, rq = monthly(s[:3], months), monthly(s[3:], months)
+        df["rate_diff"] = at(rb) - at(rq)
+        for k in (6, 12):
+            df[f"rate_mom{k}"] = at(rb - rb.shift(k)) - at(rq - rq.shift(k))
 
 
 def load_daily():
