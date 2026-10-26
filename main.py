@@ -15,8 +15,10 @@ import logging
 import os
 import sys
 import time
+from datetime import datetime, timezone
 
 import config
+import news
 import swaps
 import telegram_notify as tg
 from indicators import add_indicators
@@ -79,6 +81,11 @@ def check_symbol(data, symbol, last_bar, notify_first=True):
     for bar in new_bars:
         sig, _ = analyze(symbol, frames_as_of(frames, bar), data.digits(symbol))
         if sig:
+            blocking = news.blocks_signal(symbol, datetime.now(timezone.utc))
+            if blocking:
+                log.info("Siqnal %s %s xəbərə görə buraxıldı: %s", sig.side, symbol,
+                         ", ".join(e["country"] + " " + e["title"] for e in blocking))
+                continue
             sig.note = getattr(data, "PRICE_NOTES", {}).get(symbol, "")
             log.info("SİQNAL: %s %s @ %s (şam %s)", sig.side, symbol, sig.price, bar)
             tg.send(tg.format_signal(sig))
@@ -96,6 +103,18 @@ def run(data, symbols):
         time.sleep(config.CHECK_INTERVAL_SEC)
 
 
+def send_daily_summary(state):
+    """İş günləri DAILY_SUMMARY_HOUR-dan (Bakı vaxtı) sonra gündə bir dəfə günün xəbərlərini göndərir."""
+    now = datetime.now(timezone.utc)
+    baku = now.astimezone(news.BAKU)
+    today = baku.date().isoformat()
+    if baku.weekday() >= 5 or baku.hour < config.DAILY_SUMMARY_HOUR or state.get("_summary_day") == today:
+        return
+    text = news.daily_summary(now)
+    if text and tg.send(text):
+        state["_summary_day"] = today
+
+
 def run_cloud(data, symbols):
     """Bir keçid: state.json-da yoxlanılmış şamları yadda saxlayır ki, eyni siqnal iki dəfə gəlməsin."""
     last_bar = {}
@@ -109,6 +128,7 @@ def run_cloud(data, symbols):
         except Exception:
             errors += 1
             log.exception("%s analiz edilərkən xəta", symbol)
+    send_daily_summary(last_bar)
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(last_bar, f, indent=1)
     log.info("Yoxlama bitdi: %d cüt, %d xəta", len(symbols), errors)

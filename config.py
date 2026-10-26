@@ -52,5 +52,11 @@ TP_ATR_MULT = 3.0
 # Minimum siqnal gücü (5 timeframe-dən neçəsi siqnalla razıdır)
 MIN_STRENGTH = 3
 
+# --- Fundamental filtr: iqtisadi təqvim ---
+NEWS_IMPACT = {"High"}          # hansı təsir səviyyəsi nəzərə alınsın ("High", "Medium")
+NEWS_WARN_HOURS = 4             # siqnal mesajında neçə saat irəlidəki xəbərlər göstərilsin
+NEWS_BLOCK_MINUTES = 0          # 0 = yalnız xəbərdarlıq; məs. 60 = xəbərdən 60 dəq əvvəl/sonra siqnal verilmir
+DAILY_SUMMARY_HOUR = 9          # hər iş günü bu saatda (Bakı vaxtı) günün xəbərləri göndərilir
+
 # Neçə saniyədən bir yoxlanılsın
 CHECK_INTERVAL_SEC = 30

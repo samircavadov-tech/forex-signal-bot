@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 
 import config
+import news
 import swaps
 from strategy import pip_size
 
@@ -69,6 +70,7 @@ def format_signal(sig) -> str:
     swap = swaps.format_lines(sig.symbol, sig.side)
     if swap:
         lines += swap + [""]
+    lines += news.signal_lines(sig.symbol, datetime.now(timezone.utc)) + [""]
     lines += [
         "<b>Timeframe analizi:</b>",
     ]
