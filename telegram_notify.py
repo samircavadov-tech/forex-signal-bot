@@ -1,9 +1,13 @@
 import logging
+from datetime import datetime, timedelta, timezone
 
 import requests
 
 import config
 import swaps
+from strategy import pip_size
+
+BAKU = timezone(timedelta(hours=4))   # Bakıda yay/qış vaxtı yoxdur
 
 API = "https://api.telegram.org/bot{token}/{method}"
 log = logging.getLogger(__name__)
@@ -46,15 +50,22 @@ def find_chat_ids():
 
 def format_signal(sig) -> str:
     icon = {"BUY": "🟢", "SELL": "🔴", "NEUTRAL": "⚪"}
+    pip = pip_size(sig.symbol)
+
+    def dist(a, b):
+        d = abs(a - b)
+        return f"{d:.2f}$" if sig.symbol == "XAUUSD" else f"{d / pip:.0f} pips"
     lines = [
         f"{icon[sig.side]} <b>{sig.side} {sig.symbol}</b>",
         f"Qiymət: <code>{sig.price}</code>",
-        f"Stop-loss: <code>{sig.sl}</code>",
-        f"Take-profit: <code>{sig.tp}</code>",
+        f"Stop-loss: <code>{sig.sl}</code>  ({dist(sig.price, sig.sl)})",
+        f"Take-profit: <code>{sig.tp}</code>  ({dist(sig.tp, sig.price)})",
         f"Güc: {sig.strength}/{len(sig.biases)} timeframe razıdır",
         f"Səbəb: {sig.trigger}",
         "",
     ]
+    if sig.note:
+        lines[-1:-1] = [f"⚠️ {sig.note}"]
     swap = swaps.format_lines(sig.symbol, sig.side)
     if swap:
         lines += swap + [""]
@@ -63,5 +74,5 @@ def format_signal(sig) -> str:
     ]
     for b in sig.biases:
         lines.append(f"{icon[b.direction]} {b.tf}: {b.score:+d}  RSI {b.rsi:.0f}  ({' '.join(b.details)})")
-    lines.append(f"\n🕐 Şam: {sig.bar_time:%Y-%m-%d %H:%M}")
+    lines.append(f"\n🕐 {datetime.now(BAKU):%Y-%m-%d %H:%M} (Bakı vaxtı)")
     return "\n".join(lines)

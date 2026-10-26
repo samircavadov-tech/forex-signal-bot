@@ -10,6 +10,8 @@ log = logging.getLogger(__name__)
 
 # Yahoo-da adı fərqli olan simvollar (spot qızıl yoxdur — qızıl fyuçersi istifadə olunur)
 TICKERS = {"XAUUSD": "GC=F"}
+PRICE_NOTES = {"XAUUSD": "Qiymət qızıl fyuçersindəndir (spotdan fərqlidir) — "
+                         "SL/TP-ni brokerdəki qiymətə məsafə ilə tətbiq edin."}
 
 # tf -> (yahoo interval, period, şamın müddəti)
 SOURCES = {

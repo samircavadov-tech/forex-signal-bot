@@ -6,6 +6,24 @@ import pandas as pd
 import config
 
 
+TF_DURATION = {
+    "H1": pd.Timedelta(hours=1), "H4": pd.Timedelta(hours=4), "D1": pd.Timedelta(days=1),
+    "W1": pd.Timedelta(weeks=1), "MN1": pd.offsets.MonthBegin(1),
+}
+
+
+def frames_as_of(frames: dict, entry_bar: pd.Timestamp) -> dict:
+    """Keçmiş bir giriş şamı üçün: o şam bağlananda artıq bağlanmış olan şamları saxlayır."""
+    close_time = entry_bar + TF_DURATION[config.ENTRY_TF]
+    return {tf: df[df.index + TF_DURATION[tf] <= close_time] for tf, df in frames.items()}
+
+
+def pip_size(symbol: str) -> float:
+    if symbol == "XAUUSD":
+        return 0.1
+    return 0.01 if "JPY" in symbol else 0.0001
+
+
 @dataclass
 class TFBias:
     tf: str
@@ -26,6 +44,7 @@ class Signal:
     trigger: str
     bar_time: pd.Timestamp
     biases: list
+    note: str = ""
 
 
 def tf_bias(tf: str, df: pd.DataFrame) -> TFBias:

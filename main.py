@@ -20,7 +20,7 @@ import config
 import swaps
 import telegram_notify as tg
 from indicators import add_indicators
-from strategy import analyze
+from strategy import analyze, frames_as_of
 
 sys.stdout.reconfigure(encoding="utf-8")  # Windows konsolunda emoji/Azərbaycan hərfləri üçün
 
@@ -55,23 +55,33 @@ def print_overview(data, symbols):
             print("   >>> " + tg.format_signal(sig).replace("\n", "\n       "))
 
 
+MAX_CATCHUP = 3   # GitHub bir neçə saatı buraxsa, bu qədər köhnə şam da yoxlanılır
+
+
 def check_symbol(data, symbol, last_bar, notify_first=True):
-    """Giriş qrafikində yeni bağlanmış şam varsa analiz edir, siqnal varsa göndərir."""
+    """Giriş qrafikində yeni bağlanmış şam(lar) varsa analiz edir, siqnal varsa göndərir."""
     entry = data.get_closed_bars(symbol, config.ENTRY_TF)
     if entry is None:
         return
-    bar = str(entry.index[-1])
-    if last_bar.get(symbol) == bar:
+    prev = last_bar.get(symbol)
+    if prev is None:
+        new_bars = list(entry.index[-1:])
+    else:
+        new_bars = [t for t in entry.index[-MAX_CATCHUP:] if str(t) > prev]
+    if not new_bars:
         return
-    first_pass = symbol not in last_bar
-    last_bar[symbol] = bar
     frames = load_frames(data, symbol)
     if not frames:
         return
-    sig, _ = analyze(symbol, frames, data.digits(symbol))
-    if sig and (notify_first or not first_pass):
-        log.info("SİQNAL: %s %s @ %s", sig.side, symbol, sig.price)
-        tg.send(tg.format_signal(sig))
+    last_bar[symbol] = str(entry.index[-1])
+    if prev is None and not notify_first:
+        return
+    for bar in new_bars:
+        sig, _ = analyze(symbol, frames_as_of(frames, bar), data.digits(symbol))
+        if sig:
+            sig.note = getattr(data, "PRICE_NOTES", {}).get(symbol, "")
+            log.info("SİQNAL: %s %s @ %s (şam %s)", sig.side, symbol, sig.price, bar)
+            tg.send(tg.format_signal(sig))
 
 
 def run(data, symbols):
