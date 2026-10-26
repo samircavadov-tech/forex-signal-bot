@@ -14,6 +14,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  actions: write      # keepalive üçün
+
 concurrency:
   group: signals
   cancel-in-progress: false
@@ -56,3 +60,11 @@ jobs:
         with:
           path: state.json
           key: state-${{ github.run_id }}
+
+      # Açıq repolarda 60 gün dəyişiklik olmasa GitHub cədvəli dayandırır — bu çağırış onu aktiv saxlayır
+      - name: Keepalive
+        if: always()
+        continue-on-error: true
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/signals.yml/enable"
+        env:
+          GH_TOKEN: ${{ github.token }}
