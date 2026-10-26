@@ -1,0 +1,4 @@
+secrets_local.py
+signals.log
+state.json
+__pycache__/
