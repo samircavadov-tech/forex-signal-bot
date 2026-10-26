@@ -115,6 +115,22 @@ def send_daily_summary(state):
         state["_summary_day"] = today
 
 
+def send_monthly_report(state):
+    """Hər ayın ilk iş günü DAILY_SUMMARY_HOUR-dan sonra bir dəfə aylıq hesabat göndərir."""
+    import monthly
+    baku = datetime.now(timezone.utc).astimezone(news.BAKU)
+    month = f"{baku:%Y-%m}"
+    if baku.weekday() >= 5 or baku.hour < config.DAILY_SUMMARY_HOUR or state.get("_month") == month:
+        return
+    try:
+        text = monthly.report(state, baku)
+    except Exception:
+        log.exception("Aylıq hesabat hazırlanmadı")
+        return
+    if tg.send(text):
+        state["_month"] = month
+
+
 def run_cloud(data, symbols):
     """Bir keçid: state.json-da yoxlanılmış şamları yadda saxlayır ki, eyni siqnal iki dəfə gəlməsin."""
     last_bar = {}
@@ -129,6 +145,7 @@ def run_cloud(data, symbols):
             errors += 1
             log.exception("%s analiz edilərkən xəta", symbol)
     send_daily_summary(last_bar)
+    send_monthly_report(last_bar)
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(last_bar, f, indent=1)
     log.info("Yoxlama bitdi: %d cüt, %d xəta", len(symbols), errors)

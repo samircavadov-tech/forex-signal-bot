@@ -71,13 +71,68 @@ def rsi2(df):
     return pd.Series(out, index=df.index, dtype=float)
 
 
+def month_end_mask(df):
+    p = df.index.to_series().dt.to_period("M")
+    return p != p.shift(-1)
+
+
+def carry(df):
+    """Faiz fərqi istiqamətində (yüksək faizli valyutanı al), ay sonunda yenilənir. Qızılda carry yoxdur."""
+    d = df["rate_diff"]
+    sig = np.where(d > 0.25, 1, np.where(d < -0.25, -1, 0))
+    return pd.Series(sig, index=df.index, dtype=float).where(month_end_mask(df)).ffill()
+
+
+def carry_trend(df):
+    """Carry, amma yalnız 12 aylıq trend eyni istiqamətdədirsə."""
+    c, t = carry(df), tsmom(df)
+    return c.where(c == t, 0.0)
+
+
+def carry_mom(df):
+    """Carry və 12 aylıq momentumun ortası (hər biri ±1 → mövqe -1, -0.5, 0, 0.5, 1)."""
+    return (carry(df).fillna(0) + tsmom(df).fillna(0)) / 2
+
+
 DAILY = {
     "1. Time-series momentum 12m": tsmom,
     "2. Donchian 20/10": donchian(20, 10),
     "3. Donchian 55/20": donchian(55, 20),
     "4. MA 50/200 kəsişmə": ma_cross,
     "5. RSI(2) mean reversion": rsi2,
+    "6. Carry": carry,
+    "7. Carry + trend filtri": carry_trend,
+    "8. Carry + momentum": carry_mom,
 }
+
+# Mərkəzi bank faizləri (BIS, DBnomics vasitəsilə) — svopun/carry-nin hesablanması üçün
+BIS_CODE = {"USD": "US", "EUR": "XM", "GBP": "GB", "JPY": "JP", "CHF": "CH", "AUD": "AU", "CAD": "CA", "NZD": "NZ"}
+SWAP_MARKUP = 1.0   # broker svop əlavəsi, illik % (mövqenin istiqamətindən asılı olmayaraq ödənilir)
+
+
+def load_rates():
+    import requests
+    out = {}
+    for cur, code in BIS_CODE.items():
+        j = requests.get(f"https://api.db.nomics.world/v22/series/BIS/WS_CBPOL/M.{code}"
+                         "?observations=1&format=json", timeout=30).json()
+        d = j["series"]["docs"][0]
+        s = pd.Series(pd.to_numeric(d["value"], errors="coerce"), index=pd.PeriodIndex(d["period"], freq="M"))
+        out[cur] = s.dropna()
+    return out
+
+
+def attach_rates(data, rates):
+    for s, df in data.items():
+        if s == "XAUUSD":
+            df["rate_diff"] = 0.0
+            continue
+        base, quote = s[:3], s[3:]
+        months = df.index.to_period("M")
+        rb = rates[base].reindex(pd.period_range(rates[base].index.min(), months.max(), freq="M")).ffill()
+        rq = rates[quote].reindex(pd.period_range(rates[quote].index.min(), months.max(), freq="M")).ffill()
+        # ay ərzində qüvvədə olan faiz = əvvəlki ayın sonundakı (gələcəyi görməmək üçün)
+        df["rate_diff"] = (rb.shift(1).reindex(months).to_numpy() - rq.shift(1).reindex(months).to_numpy())
 
 
 def load_daily():
@@ -99,7 +154,9 @@ def daily_returns(strategy, data):
         w = (strategy(df).fillna(0) * TARGET_VOL / vol).clip(-3, 3).shift(1).fillna(0)
         pip = 0.1 if s == "XAUUSD" else 0.01 if "JPY" in s else 0.0001
         cost = w.diff().abs().fillna(0) * SPREAD[s] * pip / df.close
-        out[s] = (w * ret - cost).fillna(0)
+        # svop: faiz fərqi (qızılda fyuçers qiymətində artıq var) minus broker əlavəsi
+        swap = (w * df["rate_diff"].fillna(0) - w.abs() * SWAP_MARKUP) / 100 / 252
+        out[s] = (w * ret - cost + swap).fillna(0)
     return pd.DataFrame(out).fillna(0)
 
 
@@ -165,7 +222,9 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     pd.set_option("display.width", 220)
     data = load_daily()
+    attach_rates(data, load_rates())
     print("Məlumat:", {s: f"{d.index[0]:%Y}-{d.index[-1]:%Y}" for s, d in data.items()})
+    print("Hazırkı faiz fərqi (baza − kotirovka, %):", {s: round(d.rate_diff.iloc[-1], 2) for s, d in data.items()})
 
     summary, per_pair, per_period = [], {}, {}
     for name, strat in DAILY.items():
@@ -185,6 +244,8 @@ def main():
     print("\nSharpe cütlər üzrə (2005–2026):")
     print(pd.DataFrame(per_pair).T.to_string())
 
+    if "--london" not in sys.argv:
+        return
     lb = london_breakout()
     print("\nLONDON BREAKOUT (H1, MT5):", f"{lb.time.min():%Y-%m-%d} — {lb.time.max():%Y-%m-%d}")
     g = lb.groupby("symbol").R
