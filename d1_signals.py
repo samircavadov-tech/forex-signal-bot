@@ -24,7 +24,11 @@ def format_message(symbol, side, price, bar_time, digits):
     icon = "🟢" if side == "BUY" else "🔴"
     cross = "yuxarı" if side == "BUY" else "aşağı"
     lines = [
-        f"📅 <b>D1 SİQNAL</b> — {icon} <b>{side} {symbol}</b>",
+        "📅 <b>GÜNDƏLİK SİQNAL (D1) — əsas strategiya</b>",
+        "Strategiya: SMA 8 × SMA 21 və SMA 30 kəsişməsi, TP 100 pips",
+        "Etibarlılıq: ⭐⭐⭐ ən yaxşı — 22 illik sınaqda (SL 30 ilə) müsbət",
+        "",
+        f"{icon} <b>{side} {symbol}</b>",
         f"Qiymət: <code>{price:.{digits}f}</code>",
         f"Take-profit: <code>{tp:.{digits}f}</code>  ({config.D1_TP_PIPS} pips)",
         f"Stop-loss (tövsiyə): <code>{sl:.{digits}f}</code>  ({config.D1_SL_PIPS} pips)",

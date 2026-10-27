@@ -76,6 +76,8 @@ def fx_section():
 def report(state: dict, now_baku) -> str:
     gold_lines, side = gold_section(state.get("_gold_side"))
     state["_gold_side"] = side
-    head = f"📆 <b>Aylıq trend hesabatı — {MONTHS_AZ[now_baku.month - 1]} {now_baku.year}</b>"
+    head = (f"📆 <b>AYLIQ HESABAT — {MONTHS_AZ[now_baku.month - 1]} {now_baku.year}</b>\n"
+            "Strategiya: qızıl, 12 aylıq trend (ayda 1 dəfə)\n"
+            "Etibarlılıq: ⭐⭐ yaxşı — 22 illik sınaqda müsbət")
     return "\n".join([head, ""] + gold_lines + fx_section() +
                      ["", "Strategiya: 12 aylıq trend (time-series momentum). Keçmiş nəticə zəmanət deyil."])

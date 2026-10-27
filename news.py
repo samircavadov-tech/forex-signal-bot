@@ -97,7 +97,8 @@ def daily_summary(now: datetime) -> str | None:
          and now <= e["time"] <= now + timedelta(hours=24)),
         key=lambda e: e["time"],
     )
-    head = "📅 <b>Növbəti 24 saatın vacib xəbərləri</b> (Bakı vaxtı):"
+    head = ("📰 <b>XƏBƏR XÜLASƏSİ</b> (siqnal deyil — məlumat)\n"
+            "Növbəti 24 saatın vacib xəbərləri (Bakı vaxtı):")
     if not upcoming:
         return head + "\nYüksək təsirli xəbər yoxdur ✅"
     lines, day = [head], None

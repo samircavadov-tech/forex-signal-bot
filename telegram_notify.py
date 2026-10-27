@@ -57,6 +57,10 @@ def format_signal(sig) -> str:
         d = abs(a - b)
         return f"{d:.2f}$" if sig.symbol == "XAUUSD" else f"{d / pip:.0f} pips"
     lines = [
+        "⏱ <b>SAATLIQ SİQNAL (H1)</b>",
+        "Strategiya: EMA + MACD + RSI, 5 timeframe təsdiqi",
+        "Etibarlılıq: ⭐ zəif — sınaqda (2 il) qazanc göstərmədi",
+        "",
         f"{icon[sig.side]} <b>{sig.side} {sig.symbol}</b>",
         f"Qiymət: <code>{sig.price}</code>",
         f"Stop-loss: <code>{sig.sl}</code>  ({dist(sig.price, sig.sl)})",
