@@ -52,7 +52,7 @@ def swap_lines(symbol, side):
         other_side = "SELL" if side == "BUY" else "BUY"
         mark = "✅ <b>MÜSBƏT</b>" if mine > 0 else "❌ <b>MƏNFİ</b>"
         return [
-            f"💱 <b>Svop (InvestAZ)</b>: {side} {mine:+.2f}$/lot/gecə — {mark}",
+            f"💱 <b>Svop</b>: {side} {mine:+.2f}$/lot/gecə — {mark}",
             f"   0.01 lotla gecəyə {_fmt_azn(mine * 0.01)} (çərşənbə 3 qat)",
             f"   ({other_side}: {other:+.2f}$/lot)",
         ]
@@ -76,10 +76,11 @@ def format_message(symbol, side, price, bar_time, digits, data, sample=False):
         lines += ["🧪 <b>NÜMUNƏ MESAJ</b> — real siqnal deyil, formatı yoxlamaq üçündür", ""]
     lines += [
         "📅 <b>GÜNDƏLİK SİQNAL (D1)</b>",
-        f"Strategiya: SMA 8 × SMA 21 və SMA 30 kəsişməsi, TP {config.D1_TP_PIPS} pips, SL yox",
+        "Strategiya: <b>Samir</b>",
+        f"Qayda: SMA 8 × SMA 21 və SMA 30 kəsişməsi, TP {config.D1_TP_PIPS} pips, SL yox",
         "Etibarlılıq: ⭐ risklidir — 17 illik sınaqda kapital bir dəfə 80% düşüb",
         "",
-        f"{icon} <b>{side} {symbol}</b>" + ("  🏦 <i>InvestAZ cütü</i>" if investaz else ""),
+        f"{icon} <b>{side} {symbol}</b>" + ("  📌 <i>seçdiyiniz cüt</i>" if investaz else ""),
         f"Qiymət: <code>{price:.{digits}f}</code>",
         f"Take-profit: <code>{tp:.{digits}f}</code>  ({tp_dist})",
         f"Səbəb: gündəlik qrafikdə SMA 8 həm SMA 21-i, həm SMA 30-u {cross} kəsdi",
