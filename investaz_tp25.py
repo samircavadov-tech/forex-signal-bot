@@ -72,14 +72,18 @@ def simulate(sym, i, data, tp_pips):
 
 
 def main():
+    global START
     sys.stdout.reconfigure(encoding="utf-8")
     pd.set_option("display.width", 250)
     ap = argparse.ArgumentParser()
     ap.add_argument("--tp", type=int, default=25)
+    ap.add_argument("--start", default=str(START.date()), help="başlanğıc tarix, məs. 2009-08-01")
+    ap.add_argument("--summary", action="store_true", help="yalnız xülasə (cədvəlsiz)")
     ap.add_argument("--one", action="store_true", help="eyni anda yalnız 1 ticarət (bütün cütlər üzrə)")
     ap.add_argument("--one-per-pair", action="store_true", help="hər cütdə eyni anda yalnız 1 ticarət")
     args = ap.parse_args()
 
+    START = pd.Timestamp(args.start)
     data = load()
     candidates = []                                    # (tarix, cüt, indeks)
     for sym in SPECS:
@@ -128,6 +132,10 @@ def main():
     print(f"Ən aşağı kapital: {equity.min():.2f} AZN ({equity.idxmin():%d.%m.%Y}) | "
           f"ən aşağı marja səviyyəsi: {level.min():.0f}% | ən çox marja: {marg.max():.2f} AZN")
     print(f"Fayl: {out}")
+    yearly = (pnl * USD_AZN).groupby(pnl.index.year).sum().round(0).astype(int).to_dict()
+    print("İllər üzrə AZN:", yearly)
+    print(f"Ən uzun açıq qalan: {t['Gün'].max()} gün | açıq ticarətlərin üzən zərəri: "
+          f"{t[t['Bağlanış'] == 'AÇIQDIR']['Mənfəət AZN'].sum():.2f} AZN")
 
 
 if __name__ == "__main__":
