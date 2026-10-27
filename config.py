@@ -52,6 +52,12 @@ TP_ATR_MULT = 3.0
 # Minimum siqnal gücü (5 timeframe-dən neçəsi siqnalla razıdır)
 MIN_STRENGTH = 3
 
+# --- D1 strategiyası: SMA 8 × SMA 21/30, TP 100 pips (d1_signals.py) ---
+D1_SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD"]
+D1_TP_PIPS = 100
+D1_SL_PIPS = 30
+D1_NO_SL_EQUITY_PER_001 = 10_000   # SL-siz: hər bu qədər $ üçün 0.01 lot
+
 # --- Fundamental filtr: iqtisadi təqvim ---
 NEWS_IMPACT = {"High"}          # hansı təsir səviyyəsi nəzərə alınsın ("High", "Medium")
 NEWS_WARN_HOURS = 4             # siqnal mesajında neçə saat irəlidəki xəbərlər göstərilsin

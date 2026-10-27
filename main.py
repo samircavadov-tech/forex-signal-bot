@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timezone
 
 import config
+import d1_signals
 import news
 import swaps
 import telegram_notify as tg
@@ -98,6 +99,7 @@ def run(data, symbols):
         for symbol in symbols:
             try:
                 check_symbol(data, symbol, last_bar, notify_first=False)
+                d1_signals.check(data, symbol, last_bar, notify=f"_d1_{symbol}" in last_bar)
             except Exception:
                 log.exception("%s analiz edilərkən xəta", symbol)
         time.sleep(config.CHECK_INTERVAL_SEC)
@@ -143,6 +145,7 @@ def run_cloud(data, symbols):
     for symbol in symbols:
         try:
             check_symbol(data, symbol, last_bar)
+            d1_signals.check(data, symbol, last_bar)
         except Exception:
             errors += 1
             log.exception("%s analiz edilərkən xəta", symbol)

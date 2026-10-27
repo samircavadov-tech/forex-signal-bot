@@ -13,21 +13,13 @@ import pandas as pd
 
 import config
 from ma_test import POINT, mt5_frames
-from strategy import pip_size
+from strategy import ma_cross_signals, pip_size
 
 TP_PIPS = 100
 SL_VARIANTS = {"SL 30": 30, "SL 50": 50, "SL 100": 100, "SL yox (əks siqnalda bağla)": None}
 
 
-def signals(df):
-    c = df.close
-    f, m, s = c.rolling(8).mean(), c.rolling(21).mean(), c.rolling(30).mean()
-    above = (f > m) & (f > s)
-    below = (f < m) & (f < s)
-    buy = above & ~above.shift(1, fill_value=False)
-    sell = below & ~below.shift(1, fill_value=False)
-    valid = s.notna() & s.shift(1).notna()
-    return np.where(buy & valid, 1, np.where(sell & valid, -1, 0))
+signals = ma_cross_signals
 
 
 def simulate(df, sym, sl_pips):

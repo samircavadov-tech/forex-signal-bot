@@ -1,6 +1,7 @@
 """Çox-timeframe analiz və BUY/SELL siqnal məntiqi."""
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 
 import config
@@ -114,3 +115,15 @@ def analyze(symbol: str, frames: dict, digits: int):
     tp = round(price + sign * a * config.TP_ATR_MULT, digits)
     return Signal(symbol, side, round(price, digits), sl, tp, strength, trigger,
                   entry_df.index[-1], biases), biases
+
+
+def ma_cross_signals(df: pd.DataFrame, fast=8, mid=21, slow=30) -> np.ndarray:
+    """SMA fast həm mid-i, həm slow-u kəsdiyi ilk şam: +1 BUY, -1 SELL, 0 yox."""
+    c = df["close"]
+    f, m, s = c.rolling(fast).mean(), c.rolling(mid).mean(), c.rolling(slow).mean()
+    above = (f > m) & (f > s)
+    below = (f < m) & (f < s)
+    buy = above & ~above.shift(1, fill_value=False)
+    sell = below & ~below.shift(1, fill_value=False)
+    valid = s.notna() & s.shift(1).notna()
+    return np.where(buy & valid, 1, np.where(sell & valid, -1, 0))
