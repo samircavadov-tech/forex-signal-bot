@@ -4,3 +4,4 @@ state.json
 __pycache__/
 backtest_trades.csv
 optimize_results.csv
+ma_test_results.csv
