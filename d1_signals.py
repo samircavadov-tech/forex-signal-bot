@@ -10,6 +10,8 @@ Yahoo D1 diapazonu ~10% dar olduğundan SL-li nəticələr Yahoo-da şişirdilmi
 import logging
 from datetime import datetime, timezone
 
+import pandas as pd
+
 import config
 import news
 import swaps
@@ -124,4 +126,9 @@ def check(data, symbol, state, notify=True):
     log.info("D1 SİQNAL: %s %s @ %s (gün %s)", side, symbol, price, bar)
     tg.send(format_message(symbol, side, price, df.index[-1], data.digits(symbol), data))
     import questions
+    import tracker
     questions.record_signal(state, f"Samir (D1): {side} {symbol}")
+    sign = 1 if side == "BUY" else -1
+    tp = round(price + sign * config.D1_TP_PIPS * pip_size(symbol), data.digits(symbol))
+    tracker.add(state, "Samir (D1)", symbol, side, round(price, data.digits(symbol)), tp, None,
+                df.index[-1] + pd.Timedelta(days=1))

@@ -17,10 +17,13 @@ import sys
 import time
 from datetime import datetime, timezone
 
+import pandas as pd
+
 import config
 import d1_signals
 import news
 import questions
+import tracker
 import swaps
 import telegram_notify as tg
 from indicators import add_indicators
@@ -97,6 +100,8 @@ def check_symbol(data, symbol, last_bar, notify_first=True):
             log.info("SİQNAL: %s %s @ %s (şam %s)", sig.side, symbol, sig.price, bar)
             tg.send(tg.format_signal(sig))
             questions.record_signal(last_bar, f"Trend təsdiqi (H1): {sig.side} {symbol}")
+            tracker.add(last_bar, "Trend təsdiqi (H1)", symbol, sig.side, sig.price, sig.tp, sig.sl,
+                        bar + pd.Timedelta(hours=1))
 
 
 def run(data, symbols):
@@ -166,6 +171,11 @@ def run_cloud(data, symbols):
                 log.exception("%s analiz edilərkən xəta", symbol)
         if errors < len(symbols):
             last_bar["_analyzed_hour"] = hour_key
+        try:
+            tracker.update(data, last_bar, tg.send)
+        except Exception:
+            log.exception("Portfel izləməsində xəta")
+        tracker.weekly(last_bar, tg.send)
         send_daily_summary(last_bar)
         send_monthly_report(last_bar)
         log.info("Yoxlama bitdi: %d cüt, %d xəta", len(all_symbols(symbols)), errors)

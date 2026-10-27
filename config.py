@@ -58,6 +58,12 @@ D1_SYMBOLS = ["EURUSD", "GBPUSD", "AUDJPY", "EURGBP", "EURAUD",            # Inv
 D1_TP_PIPS = 50
 USD_AZN = 1.70
 
+# Virtual portfel (tracker.py): siqnalların real nəticəsinin izlənməsi
+TRACK_BALANCE_AZN = 500.0
+TRACK_LOT = 0.01
+TRACK_MAX_DAYS = 60          # bundan çox açıq qalan ticarət üçün xəbərdarlıq
+TRACK_DD_ALERT = 0.30        # kapital bu qədər düşəndə xəbərdarlıq
+
 # InvestAZ şərtləri (istifadəçinin cədvəli): spred pips, svop alış $, svop satış $ (1 lot, 1 gecə)
 INVESTAZ = {
     "EURUSD": (0.6, -13.50, 2.91),

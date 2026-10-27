@@ -29,6 +29,7 @@ HELP = (
     "• Siqnal mesajına <b>Reply</b> edib yazın: <code>0.05 lot 30 pips</code>\n"
     "• Və ya birbaşa: <code>EURAUD SELL 0.05 lot 30 pips</code>\n"
     "• Svopu da hesablamaq üçün gün əlavə edin: <code>... 10 gün</code>\n"
+    "• Siqnalların real nəticəsi: <code>hesabat</code>\n"
     f"Cütlər: {', '.join(ALL_SYMBOLS)}"
 )
 
@@ -225,6 +226,9 @@ def handle(data, state):
             low = text.strip().lower()
             if low in ("/help", "kömək", "komek", "help"):
                 out = HELP
+            elif low.strip("/ ") in ("hesabat", "report", "portfel", "nəticə", "netice"):
+                import tracker
+                out = tracker.report(state)
             elif is_calculation(text, replied):
                 out = answer(parse(text, replied), data)
             elif is_greeting(low):
