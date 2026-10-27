@@ -24,6 +24,7 @@ import d1_signals
 import news
 import questions
 import tracker
+import worker_sync
 import swaps
 import telegram_notify as tg
 from indicators import add_indicators
@@ -154,7 +155,14 @@ def run_cloud(data, symbols):
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, encoding="utf-8") as f:
             last_bar = json.load(f)
-    questions.handle(data, last_bar)                  # Telegram sualları — hər işləmədə
+    if worker_sync.enabled():
+        try:
+            if worker_sync.ensure_setup(last_bar):    # suallara Cloudflare Worker cavab verir
+                worker_sync.push_status(data, last_bar, all_symbols(symbols))
+        except Exception:
+            log.exception("Worker qurulmasında xəta")
+    else:
+        questions.handle(data, last_bar)              # Telegram sualları — hər işləmədə
 
     # Bot ~5 dəqiqədən bir işə düşür; siqnal analizi isə saatda bir dəfə (şam bağlanandan 5 dəq sonra)
     now = datetime.now(timezone.utc)
@@ -178,6 +186,11 @@ def run_cloud(data, symbols):
         tracker.weekly(last_bar, tg.send)
         send_daily_summary(last_bar)
         send_monthly_report(last_bar)
+        if worker_sync.enabled():
+            try:
+                worker_sync.push_status(data, last_bar, all_symbols(symbols))
+            except Exception:
+                log.exception("Worker məlumatı göndərilmədi")
         log.info("Yoxlama bitdi: %d cüt, %d xəta", len(all_symbols(symbols)), errors)
     else:
         log.info("Bu saat artıq analiz edilib — yalnız suallar yoxlanıldı")

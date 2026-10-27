@@ -1,0 +1,9 @@
+name = "forex-bot"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+account_id = "2712895d5caa74a9ce8647b02ca6d63a"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "a702161ea3e44d6fb3f666545b3dcd8f"

@@ -7,6 +7,9 @@ import os
 #  - GitHub-da: repo Settings -> Secrets bölməsindən mühit dəyişəni kimi gəlir
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+# Cloudflare Worker (ani cavablar üçün): GitHub Secrets-dən gəlir
+WORKER_URL = os.environ.get("WORKER_URL", "")
+STATUS_KEY = os.environ.get("STATUS_KEY", "")
 try:
     from secrets_local import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID  # noqa: F811
 except ImportError:

@@ -8,3 +8,7 @@ ma_test_results.csv
 ma_cross_tp_results.csv
 robustness_results.csv
 investaz_tp*_trades.csv
+worker/cf_token.txt
+worker/.wrangler/
+worker/node_modules/
+worker/status_key.txt
