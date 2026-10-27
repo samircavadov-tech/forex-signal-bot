@@ -94,9 +94,13 @@ def _reply(chat_id, text, reply_to=None):
     if reply_to:
         payload["reply_to_message_id"] = reply_to
     try:
-        requests.post(API.format(token=config.TELEGRAM_BOT_TOKEN, method="sendMessage"), json=payload, timeout=15)
+        r = requests.post(API.format(token=config.TELEGRAM_BOT_TOKEN, method="sendMessage"), json=payload, timeout=15)
+        if not r.ok:
+            log.error("Cavab Telegram tərəfindən rədd edildi (%s): %s", chat_id, r.text[:300])
+        return r.ok
     except requests.RequestException as e:
         log.error("Cavab göndərilmədi: %s", e)
+        return False
 
 
 def _num(s):
@@ -238,5 +242,5 @@ def handle(data, state):
         except Exception:
             log.exception("Sual cavablandırılmadı: %s", text)
             out = "❌ Hesablama alınmadı. Nümunə: <code>EURAUD SELL 0.05 lot 30 pips</code>"
-        _reply(chat, out, msg.get("message_id"))
-        log.info("Suala cavab verildi: %s", text[:60])
+        ok = _reply(chat, out, msg.get("message_id"))
+        log.info("Suala cavab %s: %s", "verildi" if ok else "GÖNDƏRİLMƏDİ", text[:60])
