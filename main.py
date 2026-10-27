@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 import config
 import d1_signals
 import news
+import questions
 import swaps
 import telegram_notify as tg
 from indicators import add_indicators
@@ -147,20 +148,30 @@ def run_cloud(data, symbols):
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, encoding="utf-8") as f:
             last_bar = json.load(f)
+    questions.handle(data, last_bar)                  # Telegram sualları — hər işləmədə
+
+    # Bot ~5 dəqiqədən bir işə düşür; siqnal analizi isə saatda bir dəfə (şam bağlanandan 5 dəq sonra)
+    now = datetime.now(timezone.utc)
+    hour_key = f"{now:%Y-%m-%d %H}"
     errors = 0
-    for symbol in all_symbols(symbols):
-        try:
-            if symbol in symbols:
-                check_symbol(data, symbol, last_bar)
-            d1_signals.check(data, symbol, last_bar)
-        except Exception:
-            errors += 1
-            log.exception("%s analiz edilərkən xəta", symbol)
-    send_daily_summary(last_bar)
-    send_monthly_report(last_bar)
+    if now.minute >= 5 and last_bar.get("_analyzed_hour") != hour_key:
+        for symbol in all_symbols(symbols):
+            try:
+                if symbol in symbols:
+                    check_symbol(data, symbol, last_bar)
+                d1_signals.check(data, symbol, last_bar)
+            except Exception:
+                errors += 1
+                log.exception("%s analiz edilərkən xəta", symbol)
+        if errors < len(symbols):
+            last_bar["_analyzed_hour"] = hour_key
+        send_daily_summary(last_bar)
+        send_monthly_report(last_bar)
+        log.info("Yoxlama bitdi: %d cüt, %d xəta", len(all_symbols(symbols)), errors)
+    else:
+        log.info("Bu saat artıq analiz edilib — yalnız suallar yoxlanıldı")
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(last_bar, f, indent=1)
-    log.info("Yoxlama bitdi: %d cüt, %d xəta", len(all_symbols(symbols)), errors)
     if errors == len(symbols):
         sys.exit(1)
 
