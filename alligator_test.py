@@ -24,7 +24,7 @@ WINDOW = 3
 
 def load(sym, tf, bars):
     import MetaTrader5 as mt5
-    tfc = {"M1": mt5.TIMEFRAME_M1, "M5": mt5.TIMEFRAME_M5, "H1": mt5.TIMEFRAME_H1, "H4": mt5.TIMEFRAME_H4}[tf]
+    tfc = mt5_data.TF_MAP[tf]
     mt5.symbol_select(sym, True)
     r = mt5.copy_rates_from_pos(sym, tfc, 0, bars)
     if r is None:
