@@ -6,3 +6,4 @@ backtest_trades.csv
 optimize_results.csv
 ma_test_results.csv
 ma_cross_tp_results.csv
+robustness_results.csv

@@ -1,7 +1,8 @@
 """D1 strategiyası: SMA 8 həm SMA 21-i, həm SMA 30-u kəsəndə siqnal, TP 100 pips.
 
-Sınaq (ma_cross_tp.py, 2004–2026, 7 cüt): SL 30 + TP 100 ilə +10 859 pips, 7 cütün
-hamısı və 3 dövrün hamısı müsbət. SL-siz variant (no_sl_test.py) üzən zərərlə çox risklidir.
+DİQQƏT: Yahoo D1 məlumatında (2004–2026) +10 859 pips görünürdü, amma real broker (MT5)
+məlumatında eyni qayda ≈ sıfır/mənfi nəticə verir — Yahoo gündəlik diapazonu ~10% dar göstərir
+və dar SL az vurulur (robustness.py müqayisəsi). Üstünlük TƏSDİQLƏNMƏYİB.
 Qızılda işləmədiyi üçün qızıl daxil deyil.
 """
 import logging
@@ -24,9 +25,9 @@ def format_message(symbol, side, price, bar_time, digits):
     icon = "🟢" if side == "BUY" else "🔴"
     cross = "yuxarı" if side == "BUY" else "aşağı"
     lines = [
-        "📅 <b>GÜNDƏLİK SİQNAL (D1) — əsas strategiya</b>",
+        "📅 <b>GÜNDƏLİK SİQNAL (D1)</b>",
         "Strategiya: SMA 8 × SMA 21 və SMA 30 kəsişməsi, TP 100 pips",
-        "Etibarlılıq: ⭐⭐⭐ ən yaxşı — 22 illik sınaqda (SL 30 ilə) müsbət",
+        "Etibarlılıq: ⭐ zəif — real broker məlumatı ilə sınaqda qazanc təsdiqlənmədi",
         "",
         f"{icon} <b>{side} {symbol}</b>",
         f"Qiymət: <code>{price:.{digits}f}</code>",
@@ -34,8 +35,7 @@ def format_message(symbol, side, price, bar_time, digits):
         f"Stop-loss (tövsiyə): <code>{sl:.{digits}f}</code>  ({config.D1_SL_PIPS} pips)",
         f"Səbəb: gündəlik qrafikdə SMA 8 həm SMA 21-i, həm SMA 30-u {cross} kəsdi",
         "",
-        "📊 Sınaq (2004–2026): SL 30 + TP 100 ilə +10 859 pips, 7 cütün hamısı müsbət. "
-        "Ticarətlərin ~24%-i TP-yə çatır — ardıcıl itkilər normaldır.",
+        "📊 Sınaq (MT5, 2004–2026): nəticə təxminən sıfır. Ticarətlərin ~21–25%-i TP-yə çatır.",
         f"⚠️ SL-siz ticarət edirsinizsə: hər {config.D1_NO_SL_EQUITY_PER_001:,}$ hesab üçün ən çox 0.01 lot "
         "(tarixdə üzən zərər 10 000 pipsə çatıb).",
         "",
