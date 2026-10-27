@@ -78,7 +78,7 @@ def is_greeting(low):
 
 def is_calculation(text, replied):
     t = text.lower()
-    has_units = re.search(r"\d\s*(lot|pips|pip)\b", t) is not None
+    has_units = re.search(r"\d\s*(lot|pip)", t) is not None   # "lotla", "pipsə" də
     has_symbol = any(s in text.upper().replace("/", "").replace(" ", "") for s in ALL_SYMBOLS)
     has_number = re.search(r"\d", t) is not None
     return has_units or has_symbol or (bool(replied) and has_number)
@@ -119,7 +119,7 @@ def parse(text, replied=""):
             side = "BUY"
             break
     lot = re.search(r"(\d+(?:\.\d+)?)\s*lot", t)
-    pips = re.search(r"(\d+(?:\.\d+)?)\s*(?:pips|pip|pp|pts|pt)\b", t)
+    pips = re.search(r"(\d+(?:\.\d+)?)\s*(?:pips|pip|pp|pts|pt)", t)
     days = re.search(r"(\d+)\s*(?:gün|gun|gecə|gece|day)", t)
     # vahidsiz rəqəmlər: kəsr → lot, tam ≥ 5 → pips
     loose = [m for m in re.findall(r"\d+(?:\.\d+)?", t)]
