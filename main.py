@@ -61,6 +61,11 @@ def print_overview(data, symbols):
 MAX_CATCHUP = 3   # GitHub bir neçə saatı buraxsa, bu qədər köhnə şam da yoxlanılır
 
 
+def all_symbols(symbols):
+    """Saatlıq strategiyanın cütləri + D1 strategiyasının əlavə cütləri."""
+    return list(symbols) + [s for s in config.D1_SYMBOLS if s not in symbols]
+
+
 def check_symbol(data, symbol, last_bar, notify_first=True):
     """Giriş qrafikində yeni bağlanmış şam(lar) varsa analiz edir, siqnal varsa göndərir."""
     entry = data.get_closed_bars(symbol, config.ENTRY_TF)
@@ -96,9 +101,10 @@ def run(data, symbols):
     last_bar = {}      # symbol -> sonuncu yoxlanılmış giriş şamının vaxtı
     tg.send("🤖 Forex siqnal botu işə düşdü.\nİzlənir: " + ", ".join(symbols))
     while True:
-        for symbol in symbols:
+        for symbol in all_symbols(symbols):
             try:
-                check_symbol(data, symbol, last_bar, notify_first=False)
+                if symbol in symbols:
+                    check_symbol(data, symbol, last_bar, notify_first=False)
                 d1_signals.check(data, symbol, last_bar, notify=f"_d1_{symbol}" in last_bar)
             except Exception:
                 log.exception("%s analiz edilərkən xəta", symbol)
@@ -142,9 +148,10 @@ def run_cloud(data, symbols):
         with open(STATE_FILE, encoding="utf-8") as f:
             last_bar = json.load(f)
     errors = 0
-    for symbol in symbols:
+    for symbol in all_symbols(symbols):
         try:
-            check_symbol(data, symbol, last_bar)
+            if symbol in symbols:
+                check_symbol(data, symbol, last_bar)
             d1_signals.check(data, symbol, last_bar)
         except Exception:
             errors += 1
@@ -153,7 +160,7 @@ def run_cloud(data, symbols):
     send_monthly_report(last_bar)
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(last_bar, f, indent=1)
-    log.info("Yoxlama bitdi: %d cüt, %d xəta", len(symbols), errors)
+    log.info("Yoxlama bitdi: %d cüt, %d xəta", len(all_symbols(symbols)), errors)
     if errors == len(symbols):
         sys.exit(1)
 
@@ -185,6 +192,8 @@ def main():
             log.exception("Svoplar yenilənmədi")
     try:
         symbols = [s for s in config.SYMBOLS if data.prepare_symbol(s)]
+        for s in config.D1_SYMBOLS:
+            data.prepare_symbol(s)
         if args.once:
             print_overview(data, symbols)
         elif args.cloud:

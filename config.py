@@ -52,11 +52,22 @@ TP_ATR_MULT = 3.0
 # Minimum siqnal gücü (5 timeframe-dən neçəsi siqnalla razıdır)
 MIN_STRENGTH = 3
 
-# --- D1 strategiyası: SMA 8 × SMA 21/30, TP 100 pips (d1_signals.py) ---
-D1_SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD"]
-D1_TP_PIPS = 100
-D1_SL_PIPS = 30
-D1_NO_SL_EQUITY_PER_001 = 10_000   # SL-siz: hər bu qədər $ üçün 0.01 lot
+# --- D1 strategiyası: SMA 8 × SMA 21/30, TP 50 pips (d1_signals.py) ---
+D1_SYMBOLS = ["EURUSD", "GBPUSD", "AUDJPY", "EURGBP", "EURAUD",            # InvestAZ cütləri
+              "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD", "XAUUSD"]
+D1_TP_PIPS = 50
+USD_AZN = 1.70
+
+# InvestAZ şərtləri (istifadəçinin cədvəli): spred pips, svop alış $, svop satış $ (1 lot, 1 gecə)
+INVESTAZ = {
+    "EURUSD": (0.6, -13.50, 2.91),
+    "GBPUSD": (1.6, -7.48, 1.83),
+    "AUDJPY": (1.8, 2.11, -9.42),
+    "EURGBP": (1.8, -4.88, 0.88),
+    "EURAUD": (2.3, -16.03, 2.93),
+}
+# InvestAZ-da olmayan cütlər üçün təxmini spred, pips
+DEFAULT_SPREAD = {"USDJPY": 1.5, "USDCHF": 2.0, "AUDUSD": 1.5, "USDCAD": 2.0, "NZDUSD": 2.5, "XAUUSD": 3.0}
 
 # --- Fundamental filtr: iqtisadi təqvim ---
 NEWS_IMPACT = {"High"}          # hansı təsir səviyyəsi nəzərə alınsın ("High", "Medium")
