@@ -33,6 +33,57 @@ HELP = (
 )
 
 
+GREETINGS = ("salam", "slm", "hi", "hello", "hey", "privet", "привет", "sabahınız xeyir", "sabahiniz xeyir",
+             "günortanız xeyir", "axşamınız xeyir", "axsaminiz xeyir", "/start")
+
+NOT_CHAT = (
+    "ℹ️ <b>Bu bot yazışma üçün nəzərdə tutulmayıb.</b>\n\n"
+    "Bot yalnız aşağıdakı xidmətləri göstərir:\n"
+    "• 📅 bazar siqnallarının avtomatik göndərilməsi\n"
+    "• 📰 gündəlik iqtisadi xəbər xülasəsi və 📆 aylıq hesabat\n"
+    "• 🧮 gəlir hesablaması — məsələn: <code>EURAUD SELL 0.05 lot 30 pips</code>\n\n"
+    "Anlayışınız üçün təşəkkür edirik."
+)
+
+
+def record_signal(state, text):
+    """Göndərilən siqnalı yadda saxlayır (son 24 saat salamlaşma cavabında göstərilir)."""
+    now = time.time()
+    items = [x for x in state.get("_signals", []) if now - x[0] < 24 * 3600]
+    items.append([now, text])
+    state["_signals"] = items[-20:]
+
+
+def welcome(state):
+    now = time.time()
+    recent = [x for x in state.get("_signals", []) if now - x[0] < 24 * 3600]
+    lines = ["👋 <b>Salam! Forex Siqnal Botuna xoş gəlmisiniz.</b>", "",
+             "Bot valyuta bazarını avtomatik izləyir və strategiya şərtləri yarandıqda sizə dərhal siqnal göndərir.", ""]
+    if recent:
+        lines.append("📬 <b>Son 24 saatda göndərilən siqnallar:</b>")
+        for ts, text in recent:
+            t = time.strftime("%d.%m %H:%M", time.gmtime(ts + 4 * 3600))   # Bakı vaxtı
+            lines.append(f"• {t} — {text}")
+    else:
+        lines.append("📭 <b>Hazırda aktiv siqnal yoxdur.</b> Yeni siqnal yarandıqda bildiriş alacaqsınız.")
+    lines += ["", "🧮 Gəliri hesablamaq üçün siqnal mesajına <b>Reply</b> edib yazın, məsələn: <code>0.05 lot 30 pips</code>"]
+    return "\n".join(lines)
+
+
+def is_greeting(low):
+    """İlk söz salamlaşmadırsa (məs. "salam", "hi"), və ya çoxsözlü salamla başlayırsa."""
+    first = re.split(r"[\s,!.?]+", low.strip())[0]
+    return first in GREETINGS or any(low.startswith(g) for g in GREETINGS if " " in g)
+
+
+def is_calculation(text, replied):
+    t = text.lower()
+    has_units = re.search(r"\d\s*(lot|pips|pip)\b", t) is not None
+    has_symbol = any(s in text.upper().replace("/", "").replace(" ", "") for s in ALL_SYMBOLS)
+    has_number = re.search(r"\d", t) is not None
+    return has_units or has_symbol or (bool(replied) and has_number)
+
+
 def _allowed_chats():
     return {c.strip() for c in str(config.TELEGRAM_CHAT_ID).split(",") if c.strip()}
 
@@ -171,10 +222,15 @@ def handle(data, state):
             continue
         replied = (msg.get("reply_to_message") or {}).get("text", "")
         try:
-            if text.strip().lower() in ("/start", "/help", "kömək", "komek", "help"):
+            low = text.strip().lower()
+            if low in ("/help", "kömək", "komek", "help"):
                 out = HELP
-            else:
+            elif is_calculation(text, replied):
                 out = answer(parse(text, replied), data)
+            elif is_greeting(low):
+                out = welcome(state)
+            else:
+                out = NOT_CHAT
         except Exception:
             log.exception("Sual cavablandırılmadı: %s", text)
             out = "❌ Hesablama alınmadı. Nümunə: <code>EURAUD SELL 0.05 lot 30 pips</code>"

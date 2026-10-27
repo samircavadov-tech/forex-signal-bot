@@ -96,6 +96,7 @@ def check_symbol(data, symbol, last_bar, notify_first=True):
             sig.note = getattr(data, "PRICE_NOTES", {}).get(symbol, "")
             log.info("SİQNAL: %s %s @ %s (şam %s)", sig.side, symbol, sig.price, bar)
             tg.send(tg.format_signal(sig))
+            questions.record_signal(last_bar, f"Trend təsdiqi (H1): {sig.side} {symbol}")
 
 
 def run(data, symbols):

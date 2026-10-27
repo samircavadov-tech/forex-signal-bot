@@ -123,3 +123,5 @@ def check(data, symbol, state, notify=True):
     price = float(df["close"].iloc[-1])
     log.info("D1 SİQNAL: %s %s @ %s (gün %s)", side, symbol, price, bar)
     tg.send(format_message(symbol, side, price, df.index[-1], data.digits(symbol), data))
+    import questions
+    questions.record_signal(state, f"Samir (D1): {side} {symbol}")
