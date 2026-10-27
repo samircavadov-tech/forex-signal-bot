@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
+import alligator_bot
 import config
 import d1_signals
 import news
@@ -114,6 +115,7 @@ def run(data, symbols):
                 if symbol in symbols:
                     check_symbol(data, symbol, last_bar, notify_first=False)
                 d1_signals.check(data, symbol, last_bar, notify=f"_d1_{symbol}" in last_bar)
+                alligator_bot.check(data, symbol, last_bar, notify=f"_alli_{symbol}" in last_bar)
             except Exception:
                 log.exception("%s analiz edilərkən xəta", symbol)
         time.sleep(config.CHECK_INTERVAL_SEC)
@@ -174,6 +176,7 @@ def run_cloud(data, symbols):
                 if symbol in symbols:
                     check_symbol(data, symbol, last_bar)
                 d1_signals.check(data, symbol, last_bar)
+                alligator_bot.check(data, symbol, last_bar)
             except Exception:
                 errors += 1
                 log.exception("%s analiz edilərkən xəta", symbol)

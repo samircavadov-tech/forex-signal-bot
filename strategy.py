@@ -127,3 +127,24 @@ def ma_cross_signals(df: pd.DataFrame, fast=8, mid=21, slow=30) -> np.ndarray:
     sell = below & ~below.shift(1, fill_value=False)
     valid = s.notna() & s.shift(1).notna()
     return np.where(buy & valid, 1, np.where(sell & valid, -1, 0))
+
+
+def alligator_signals(df: pd.DataFrame, window: int = 5) -> np.ndarray:
+    """Alligator (H4) strategiyası: +1 BUY, -1 SELL, 0 yox.
+    BUY: MA10 MA50-ni yuxarı kəsir + son `window` şamda Lips Teeth-i yuxarı kəsib + AO > 0.
+    Alligator: EMA, Median Price, Jaws 13/8, Teeth 8/5, Lips 5/3. SELL — əksinə.
+    (alligator_optimize.py: H4, 2016–2026, 5 cüt üzrə TP 3×ATR / SL 1×ATR ilə +0.125 R/ticarət)"""
+    c = df["close"]
+    med = (df["high"] + df["low"]) / 2
+    ema = lambda s, n: s.ewm(span=n, adjust=False).mean()
+    teeth, lips = ema(med, 8).shift(5), ema(med, 5).shift(3)
+    ma10, ma50 = c.rolling(10).mean(), c.rolling(50).mean()
+    ao = med.rolling(5).mean() - med.rolling(34).mean()
+    cross_up = (ma10 > ma50) & (ma10.shift() <= ma50.shift())
+    cross_dn = (ma10 < ma50) & (ma10.shift() >= ma50.shift())
+    lips_up = (lips > teeth) & (lips.shift() <= teeth.shift())
+    lips_dn = (lips < teeth) & (lips.shift() >= teeth.shift())
+    recent = lambda s: s.rolling(window).max().fillna(0).astype(bool)
+    buy = cross_up & recent(lips_up) & (ao > 0)
+    sell = cross_dn & recent(lips_dn) & (ao < 0)
+    return np.where(buy, 1, np.where(sell, -1, 0))

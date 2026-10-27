@@ -61,6 +61,12 @@ D1_SYMBOLS = ["EURUSD", "GBPUSD", "AUDJPY", "EURGBP", "EURAUD",            # Inv
 D1_TP_PIPS = 50
 USD_AZN = 1.70
 
+# --- Alligator (H4) strategiyası (alligator_bot.py) ---
+ALLIGATOR_SYMBOLS = ["EURUSD", "GBPUSD", "AUDJPY", "EURAUD"]   # EURGBP sınaqda mənfi idi
+ALLIGATOR_SL_ATR = 1.0
+ALLIGATOR_TP_ATR = 3.0
+ALLIGATOR_RISK_PCT = 1.0     # lot tövsiyəsi: hər ticarətdə hesabın bu qədər faizi risk
+
 # Virtual portfel (tracker.py): siqnalların real nəticəsinin izlənməsi
 TRACK_BALANCE_AZN = 500.0
 TRACK_LOT = 0.01
