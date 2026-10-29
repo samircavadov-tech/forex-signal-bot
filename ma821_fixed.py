@@ -95,6 +95,20 @@ def main():
     g["pips/ticarət"] = g.net_pips / g.ticarət
     g["AZN/il (0.01 lot)"] = g.net_pips * 0.1 * config.USD_AZN / g.il      # ~0.10$/pips, 0.01 lot
     print(g.round(1).to_string())
+    r.to_csv("ma821_fixed_pairs.csv", index=False)
+    r["AZN/il"] = r.net * 0.1 * config.USD_AZN / r.il
+    r["ən pis AZN"] = r.worst * 0.1 * config.USD_AZN
+    for variant in ("TP10+SL10", "TP10, SL yox"):
+        for flt in ("yox", "trend"):
+            sub = r[(r.variant == variant) & (r.filtr == flt)]
+            print(f"\n=== {variant}, filtr: {flt} — CÜTLƏR ÜZRƏ ===")
+            print("Qazanclı ticarət %:")
+            print(sub.pivot(index="qrafik", columns="cüt", values="qazanc").round(1).to_string())
+            print("Net pips:")
+            print(sub.pivot(index="qrafik", columns="cüt", values="net").round(0).to_string())
+            if variant == "TP10, SL yox":
+                print("Ən pis üzən zərər, AZN (0.01 lot):")
+                print(sub.pivot(index="qrafik", columns="cüt", values="ən pis AZN").round(0).to_string())
 
 
 if __name__ == "__main__":
