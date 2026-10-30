@@ -107,7 +107,8 @@ def format_message(symbol, side, price, bar_time, digits, data, sample=False):
     lines += [
         "",
         "🛡 Qorumalar: kapital 30% düşsə hamısını bağla; 60 gündən çox açıq qalanı bağla; "
-        "500 AZN üçün eyni anda 2–3 cütdən çox açma.",
+        f"lot: hər {config.LOT_STEP_AZN:.0f} AZN üçün 0.01; balans {config.LOT_STEP_AZN:.0f} AZN-dən azdırsa "
+        f"eyni anda {config.SMALL_MAX_OPEN} ticarətdən çox açma.",
         "",
     ]
     lines += news.signal_lines(symbol, datetime.now(timezone.utc))
@@ -133,9 +134,10 @@ def check(data, symbol, state, notify=True):
     side = "BUY" if side == 1 else "SELL"
     price = float(df["close"].iloc[-1])
     log.info("D1 SİQNAL: %s %s @ %s (gün %s)", side, symbol, price, bar)
-    tg.send(format_message(symbol, side, price, df.index[-1], data.digits(symbol), data))
     import questions
     import tracker
+    tg.send(format_message(symbol, side, price, df.index[-1], data.digits(symbol), data)
+            + "\n\n" + tracker.plan_line(state))
     questions.record_signal(state, f"Samir (D1): {side} {symbol}")
     sign = 1 if side == "BUY" else -1
     tp = round(price + sign * config.D1_TP_PIPS * pip_size(symbol), data.digits(symbol))

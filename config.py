@@ -69,7 +69,11 @@ ALLIGATOR_RISK_PCT = 1.0     # lot tövsiyəsi: hər ticarətdə hesabın bu qə
 
 # Virtual portfel (tracker.py): siqnalların real nəticəsinin izlənməsi
 TRACK_BALANCE_AZN = 500.0
-TRACK_LOT = 0.01
+TRACK_LOT = 0.01             # köhnə ticarətlər üçün (lot yazılmayıbsa)
+# Lot qaydası (istifadəçi ilə razılaşdırılıb): hər LOT_STEP_AZN üçün 0.01 lot;
+# balans LOT_STEP_AZN-dən azdırsa — 0.01 lot, eyni anda ən çox SMALL_MAX_OPEN ticarət.
+LOT_STEP_AZN = 1200.0
+SMALL_MAX_OPEN = 2
 TRACK_MAX_DAYS = 60          # bundan çox açıq qalan ticarət üçün xəbərdarlıq
 TRACK_DD_ALERT = 0.30        # kapital bu qədər düşəndə xəbərdarlıq
 

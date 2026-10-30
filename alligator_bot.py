@@ -52,10 +52,6 @@ def format_message(symbol, side, price, sl, tp, bar_time, digits, data, sample=F
             win = (tp_pips - spread) * pv * lot
             loss = -(sl_pips + spread) * pv * lot
             lines.append(f"   {lot:g} lot: TP <b>{_azn(win)}</b> | SL {_azn(loss)}")
-        risk_azn = config.TRACK_BALANCE_AZN * config.ALLIGATOR_RISK_PCT / 100
-        lot_suggest = risk_azn / config.USD_AZN / ((sl_pips + spread) * pv)
-        lines.append(f"   📏 {config.TRACK_BALANCE_AZN:.0f} AZN hesab, {config.ALLIGATOR_RISK_PCT:g}% risk üçün: "
-                     f"~<b>{max(lot_suggest, 0.01):.2f} lot</b>")
         lines.append("")
     lines += swap_lines(symbol, side, data)
     lines += ["", "⚠️ 8–10 ardıcıl itki bu strategiya üçün normaldır — qazanc nadir, amma 3 dəfə böyük olur.", ""]
@@ -90,8 +86,8 @@ def check(data, symbol, state, notify=True):
     digits = data.digits(symbol)
     price, sl, tp = [round(x, digits) for x in levels(df, side)]
     log.info("ALLIGATOR SİQNAL: %s %s @ %s SL %s TP %s (şam %s)", side, symbol, price, sl, tp, bar)
-    tg.send(format_message(symbol, side, price, sl, tp, df.index[-1], digits, data))
     import questions
     import tracker
+    tg.send(format_message(symbol, side, price, sl, tp, df.index[-1], digits, data) + "\n\n" + tracker.plan_line(state))
     questions.record_signal(state, f"Alligator (H4): {side} {symbol}")
     tracker.add(state, "Alligator (H4)", symbol, side, price, tp, sl, df.index[-1] + pd.Timedelta(hours=4))
