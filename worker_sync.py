@@ -55,11 +55,19 @@ def push_status(data, state, symbols):
             pass
     sw = {s: {"long": v["long"], "short": v["short"]}
           for s, v in ((swaps.load() or {}).get("symbols", {})).items()}
+    from d1_signals import investaz_swap_usd
+    investaz = {}                     # svop punktdan $-a çevrilmiş halda (1 lot, 1 gecə)
+    for s, (spread, _, _) in config.INVESTAZ.items():
+        try:
+            lng, sht = investaz_swap_usd(s, data)
+        except Exception:
+            _, lng, sht = config.INVESTAZ[s]
+        investaz[s] = (spread, round(lng, 2), round(sht, 2))
     payload = {
         "updated": int(time.time()),
         "config": {
             "symbols": symbols,
-            "investaz": config.INVESTAZ,
+            "investaz": investaz,
             "default_spread": config.DEFAULT_SPREAD,
             "tp_default": config.D1_TP_PIPS,
             "usd_azn": config.USD_AZN,

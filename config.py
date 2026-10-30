@@ -73,7 +73,9 @@ TRACK_LOT = 0.01
 TRACK_MAX_DAYS = 60          # bundan çox açıq qalan ticarət üçün xəbərdarlıq
 TRACK_DD_ALERT = 0.30        # kapital bu qədər düşəndə xəbərdarlıq
 
-# InvestAZ şərtləri (istifadəçinin cədvəli): spred pips, svop alış $, svop satış $ (1 lot, 1 gecə)
+# InvestAZ şərtləri (istifadəçinin cədvəli): spred pips, svop alış, svop satış — PUNKTLA (1 lot, 1 gecə).
+# 1 punkt = pips dəyəri / 10: EURUSD/GBPUSD-də 1$, kross cütlərdə kursa görə $-a çevrilir (d1_signals.investaz_swap_usd).
+# Sınaq: 0.02 lot EURUSD SELL, 1 gecə → +0.10 AZN (2.91 × 0.02 × 1.70).
 INVESTAZ = {
     "EURUSD": (0.6, -13.50, 2.91),
     "GBPUSD": (1.6, -7.48, 1.83),

@@ -136,10 +136,10 @@ def parse(text, replied=""):
                 days=int(days.group(1)) if days else None, price=float(price.group(1)) if price else None)
 
 
-def swap_for(symbol):
+def swap_for(symbol, data=None, price=None):
     if symbol in config.INVESTAZ:
-        _, l, s = config.INVESTAZ[symbol]
-        return l, s
+        from d1_signals import investaz_swap_usd
+        return investaz_swap_usd(symbol, data, price)
     sw = (swaps.load() or {}).get("symbols", {}).get(symbol)
     return (sw["long"], sw["short"]) if sw else (None, None)
 
@@ -174,7 +174,7 @@ def answer(q, data):
         f"2) 1 pips dəyəri: 1 lot = {pv1:.2f}$ → {lot:g} lot = {pv1 * lot:.4f}$",
         f"3) TP-də gəlir: {net:g} × {pv1 * lot:.4f}$ = <b>{usd:+.2f}$ = {azn(usd)}</b>",
     ]
-    long_, short_ = swap_for(sym)
+    long_, short_ = swap_for(sym, data, price)
     if long_ is not None:
         lines.append("")
         sides = [side] if side else ["BUY", "SELL"]

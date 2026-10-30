@@ -57,7 +57,7 @@ def format_message(symbol, side, price, sl, tp, bar_time, digits, data, sample=F
         lines.append(f"   📏 {config.TRACK_BALANCE_AZN:.0f} AZN hesab, {config.ALLIGATOR_RISK_PCT:g}% risk üçün: "
                      f"~<b>{max(lot_suggest, 0.01):.2f} lot</b>")
         lines.append("")
-    lines += swap_lines(symbol, side)
+    lines += swap_lines(symbol, side, data)
     lines += ["", "⚠️ 8–10 ardıcıl itki bu strategiya üçün normaldır — qazanc nadir, amma 3 dəfə böyük olur.", ""]
     lines += news.signal_lines(symbol, datetime.now(timezone.utc))
     lines.append(f"\n🕐 H4 şamı: {bar_time:%d.%m.%Y %H:%M} UTC")

@@ -47,9 +47,18 @@ def _fmt_azn(usd):
     return f"{usd * config.USD_AZN:+.2f} AZN"
 
 
-def swap_lines(symbol, side):
+def investaz_swap_usd(symbol, data, price=None):
+    """InvestAZ svopu punktla verilir → 1 lot, 1 gecə üçün $ (1 punkt = pips dəyəri / 10)."""
+    _, long_pt, short_pt = config.INVESTAZ[symbol]
+    pv = pip_value_usd(symbol, price or _last_close(data, symbol), data) if data else None
+    if not pv:
+        return long_pt, short_pt          # məlumat yoxdursa — USD-kotirovkalı cütlər kimi
+    return long_pt * pv / 10, short_pt * pv / 10
+
+
+def swap_lines(symbol, side, data=None):
     if symbol in config.INVESTAZ:
-        _, long_, short_ = config.INVESTAZ[symbol]
+        long_, short_ = investaz_swap_usd(symbol, data)
         mine, other = (long_, short_) if side == "BUY" else (short_, long_)
         other_side = "SELL" if side == "BUY" else "BUY"
         mark = "✅ <b>MÜSBƏT</b>" if mine > 0 else "❌ <b>MƏNFİ</b>"
@@ -94,7 +103,7 @@ def format_message(symbol, side, price, bar_time, digits, data, sample=False):
             usd = net_pips * pv * lot
             lines.append(f"   {lot:g} lot: <b>{_fmt_azn(usd)}</b>  ({usd:+.2f}$)")
         lines.append("")
-    lines += swap_lines(symbol, side)
+    lines += swap_lines(symbol, side, data)
     lines += [
         "",
         "🛡 Qorumalar: kapital 30% düşsə hamısını bağla; 60 gündən çox açıq qalanı bağla; "

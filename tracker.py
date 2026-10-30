@@ -20,9 +20,10 @@ log = logging.getLogger(__name__)
 BAKU = timezone(timedelta(hours=4))
 
 
-def _swap_night_usd(symbol, side):
+def _swap_night_usd(symbol, side, data=None):
     if symbol in config.INVESTAZ:
-        _, l, s = config.INVESTAZ[symbol]
+        from d1_signals import investaz_swap_usd
+        l, s = investaz_swap_usd(symbol, data)
     else:
         sw = (swaps.load() or {}).get("symbols", {}).get(symbol)
         if not sw:
@@ -49,7 +50,7 @@ def _pnl_azn(t, exit_price, days, data):
     sign = 1 if t["side"] == "BUY" else -1
     pips = sign * (exit_price - t["entry"]) / pip - _spread(t["symbol"])
     pv = pip_value_usd(t["symbol"], exit_price, data) or 0.0
-    swap = _swap_night_usd(t["symbol"], t["side"]) * max(days, 0)
+    swap = _swap_night_usd(t["symbol"], t["side"], data) * max(days, 0)
     return pips, (pips * pv * config.TRACK_LOT + swap) * config.USD_AZN, swap * config.USD_AZN
 
 
