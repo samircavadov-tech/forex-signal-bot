@@ -1,5 +1,5 @@
-"""SMA 8 × SMA 21 kəsişməsi, sabit TP 10 pips (100 punkt).
-A) TP 10 + SL 10 pips   B) TP 10, SL yox (TP-yə qədər gözlə, hər cütdə eyni anda 1 ticarət)
+"""SMA 8 × SMA 21 kəsişməsi, sabit TP (default 10 pips; arqumentlə dəyişir).
+A) TP + SL (eyni ölçü)   B) TP, SL yox (TP-yə qədər gözlə, hər cütdə eyni anda 1 ticarət)
 Filtr: yox | trend (qiymət SMA200-ün eyni tərəfində). MT5 real broker məlumatı, istifadəçinin 5 cütü,
 spred cədvəldən. Bir şamda həm SL, həm TP mümkündürsə — ehtiyatla SL.
 
@@ -16,8 +16,8 @@ from alligator_test import PAIRS, load
 from investaz_test import pip_value_usd as _unused  # noqa: F401  (eyni pips dəyəri qaydası)
 
 TFS = {"M15": 50000, "M30": 40000, "H1": 20000, "H4": 16000, "D1": 4500}
-TP = 10
-SL = 10
+TP = int(sys.argv[1]) if len(sys.argv) > 1 else 10   # python ma821_fixed.py 5  → TP 5 pips
+SL = TP
 
 
 def side_and_trend(df):
@@ -37,7 +37,7 @@ def run(df, sym, use_trend, with_sl):
     hi, lo, close = df.high.to_numpy(), df.low.to_numpy(), df.close.to_numpy()
     out, busy = [], -1
     for i in np.flatnonzero(side != 0):
-        if i < 210 or (use_trend and not trend_ok[i]):
+        if i < 210 or i >= len(df) - 1 or (use_trend and not trend_ok[i]):
             continue
         if not with_sl and i <= busy:
             continue
@@ -81,7 +81,7 @@ def main():
                         if t.empty:
                             continue
                         rows.append(dict(qrafik=tf, filtr="trend" if use_trend else "yox",
-                                         variant="TP10+SL10" if with_sl else "TP10, SL yox", cüt=sym, il=years,
+                                         variant=f"TP{TP}+SL{SL}" if with_sl else f"TP{TP}, SL yox", cüt=sym, il=years,
                                          n=len(t), qazanc=(t.pips > 0).mean() * 100, net=t.pips.sum(),
                                          worst=t.worst.min(), açıq=int(t.get("open", pd.Series(dtype=bool)).sum()),
                                          müddət=t.bars.mean()))
@@ -95,10 +95,10 @@ def main():
     g["pips/ticarət"] = g.net_pips / g.ticarət
     g["AZN/il (0.01 lot)"] = g.net_pips * 0.1 * config.USD_AZN / g.il      # ~0.10$/pips, 0.01 lot
     print(g.round(1).to_string())
-    r.to_csv("ma821_fixed_pairs.csv", index=False)
+    r.to_csv(f"ma821_tp{TP}_pairs.csv", index=False)
     r["AZN/il"] = r.net * 0.1 * config.USD_AZN / r.il
     r["ən pis AZN"] = r.worst * 0.1 * config.USD_AZN
-    for variant in ("TP10+SL10", "TP10, SL yox"):
+    for variant in (f"TP{TP}+SL{SL}", f"TP{TP}, SL yox"):
         for flt in ("yox", "trend"):
             sub = r[(r.variant == variant) & (r.filtr == flt)]
             print(f"\n=== {variant}, filtr: {flt} — CÜTLƏR ÜZRƏ ===")
@@ -106,7 +106,7 @@ def main():
             print(sub.pivot(index="qrafik", columns="cüt", values="qazanc").round(1).to_string())
             print("Net pips:")
             print(sub.pivot(index="qrafik", columns="cüt", values="net").round(0).to_string())
-            if variant == "TP10, SL yox":
+            if "SL yox" in variant:
                 print("Ən pis üzən zərər, AZN (0.01 lot):")
                 print(sub.pivot(index="qrafik", columns="cüt", values="ən pis AZN").round(0).to_string())
 
