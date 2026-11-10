@@ -1,8 +1,8 @@
 """D1: SMA 8×21 və SMA 8×21×30 ("Samir") kəsişməsi, TP 5 və 10 pips, SL yox.
 Yalnız svopu müsbət olan istiqamət (bugünkü cədvələ görə), hər cütdə eyni anda 1 ticarət.
-Spred çıxılır, müsbət svop gəlirə əlavə olunur (gecə sayı ≈ təqvim günü). 0.01 lot, MT5 məlumatı.
+Spred çıxılır, müsbət svop (punktla, $-a çevrilir) gəlirə əlavə olunur (gecə sayı ≈ təqvim günü). 0.01 lot, MT5 məlumatı.
 
-İstifadə:  python ma_d1_swap.py
+İstifadə:  python ma_d1_swap.py [TP pips ...]
 """
 import sys
 
@@ -16,6 +16,7 @@ from strategy import ma_cross_signals
 PAIRS = list(config.INVESTAZ)
 LOT = 0.01
 START_RECENT = "2025-04-11"
+TPS = [int(x) for x in sys.argv[1:]] or [5, 10]   # python ma_d1_swap.py 5 8 10
 
 
 def cross821(df):
@@ -50,7 +51,7 @@ def run(df, sym, sig, tp_pips, pv):
         pips = (tp_pips if j is not None else side * (close[-1] - e) / pip) - spread
         days = (t[i + 1 + end] - t[i]).days
         v = pv.iloc[i] * LOT
-        out.append(dict(time=t[i], pips=pips, usd=pips * v, swap=swap_lot * LOT * days, days=days,
+        out.append(dict(time=t[i], pips=pips, usd=pips * v, swap=swap_lot * pv.iloc[i] / 10 * LOT * days, days=days,
                         worst_usd=min(worst, 0) * v, open=j is None))
         busy = i + 1 + end if j is not None else len(df)
     return pd.DataFrame(out)
@@ -75,7 +76,7 @@ def main():
         df = data[sym]
         pv = pip_value_usd(sym, data)
         for name, sig in (("8×21", cross821(df)), ("8×21×30", ma_cross_signals(df, 8, 21, 30))):
-            for tp in (5, 10):
+            for tp in TPS:
                 t = run(df, sym, sig, tp, pv)
                 if t.empty:
                     continue
